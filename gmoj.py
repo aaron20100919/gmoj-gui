@@ -397,10 +397,8 @@ search   :
         __frame = tk.Frame(self.rightframe)
         __frame.grid(row=1, column=0, padx=10, pady=5)
 
-        informationlabel = tk.Label(
-            self.rightframe, text="Please search", width=50, height=10
-        )
-        informationlabel.grid(row=1, column=1, padx=10, pady=5)
+        codelabel = tk.Label(self.rightframe, text="Please search", width=50, height=10)
+        codelabel.grid(row=1, column=1, padx=10, pady=5)
 
         def __searchuser():
             try:
@@ -447,7 +445,7 @@ search   :
                 for i in range(0, len(item), 2):
                     labeltext += f"{item[i]}: {item[i + 1]}\n"
 
-                informationlabel.config(text=labeltext)
+                codelabel.config(text=labeltext)
 
             except TimeoutError:
                 self.error("Timeout")
@@ -554,14 +552,57 @@ search   :
         ).grid(row=2, column=0, padx=10, pady=5)
 
     def searchpubliccode(self):
-        self.log("Please wait author finish this")
+        self.set("search public code")
+
+        tk.Label(self.rightframe, text="problem: ", width=10).grid(
+            row=0, column=0, pady=5
+        )
+
+        problementry = tk.Entry(self.rightframe, width=30)
+        problementry.grid(row=0, column=1, pady=5)
+
+        __frame = tk.Frame(self.rightframe)
+        __frame.grid(row=1, column=0, padx=10, pady=5)
+
+        codelabel = tk.Label(self.rightframe, text="Please search", width=50, height=10)
+        codelabel.grid(row=1, column=1, padx=10, pady=5)
+
+        def __searchcode():
+            labeltext = ""
+
+            for i in range(10):
+                try:
+                    response = requests.post(
+                        f"https://gmoj.net/senior/index.php/main/status/{i}?problems[]={problementry.get()}&status[]=0",
+                        headers=self.headers,
+                        cookies=self.cookies,
+                        timeout=1,
+                    )
+                    response.raise_for_status()
+                    soup = bs4.BeautifulSoup(response.text, "html.parser")
+
+                    for item in soup.find_all("tr"):
+                        if str(item).find("icon-globe") != -1:
+                            labeltext += (
+                                f"https://gmoj.net/senior/#main/code/{item.td.text}\n"
+                            )
+                    codelabel.config(text=labeltext)
+
+                except TimeoutError:
+                    self.error("Timeout")
+                except Exception as e:
+                    self.error(e)
+
+        tk.Button(__frame, text="search", width=10, command=__searchcode).grid(
+            row=0, column=0, padx=10, pady=5
+        )
 
         tk.Button(
-            self.rightframe,
+            __frame,
             text="return",
             width=10,
-            command=self.turn(self.download),
-        ).grid(row=0, column=0, padx=10, pady=5)
+            command=self.turn(self.search),
+        ).grid(row=1, column=0, padx=10, pady=5)
 
 
 if __name__ == "__main__":
