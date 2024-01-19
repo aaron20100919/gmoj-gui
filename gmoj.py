@@ -1,11 +1,12 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 import requests
 import json
 import bs4
 import re
 from urllib.parse import quote
 import random
+import time
 
 
 class App(tk.Tk):
@@ -194,7 +195,7 @@ search   :
  - return : return the home page
 """,
             width=100,
-            height=10,
+            height=30,
             justify="left",
         ).grid(row=0, column=0, padx=10, pady=5)
 
@@ -441,9 +442,9 @@ search   :
                 item[k2] += " " + item[k2 + 1]
                 item.pop(k2)
 
-                labeltext = f"blog: {blog}\n"
+                labeltext = "%10s: %20s\n" % ("blog", blog)
                 for i in range(0, len(item), 2):
-                    labeltext += f"{item[i]}: {item[i + 1]}\n"
+                    labeltext += "%10s: %20s\n" % (item[i], item[i + 1])
 
                 codelabel.config(text=labeltext)
 
@@ -475,17 +476,32 @@ search   :
         __frame = tk.Frame(self.rightframe)
         __frame.grid(row=1, column=0, padx=10, pady=5)
 
-        problemlabel = tk.Label(
+        problemtree = ttk.Treeview(
             self.rightframe,
-            text="Please search, and author try to format but still messy\nif you have better formatter, please call me at github`-`",
-            width=100,
-            height=25,
-            justify="left",
         )
-        problemlabel.grid(row=1, column=1, padx=10, pady=5)
+
+        def __clear():
+            for item in problemtree.get_children():
+                problementry.delete(item)
+            problemtree["column"] = (
+                "Problem",
+                "Problem Title",
+                "Solved",
+                "Submit",
+                "Average",
+            )
+            for name in problemtree["column"]:
+                problemtree.column(name, width=50, anchor="w")
+                problemtree.heading(name, text=name)
+            problemtree.column("Problem Title", width=100, anchor="w")
+
+        __clear()
+        problemtree.grid(row=1, column=1, padx=10, pady=5)
 
         def __searchproblem():
             try:
+                __clear()
+
                 params = {
                     "search": quote(problementry.get()),
                 }
@@ -501,32 +517,24 @@ search   :
 
                 soup = bs4.BeautifulSoup(response.text, "html.parser")
 
-                labeltext = "%-7s %-50s %-6s %-7s %s\n" % (
-                    "Problem",
-                    "Title",
-                    "Solved",
-                    "Submit",
-                    "Average",
-                )
+                num = 0
                 cnt = 0
+                tup = []
 
                 for item in soup.find_all("a"):
                     if item.get("href"):
                         id = str(item.text)
                         cnt += 1
-                        if cnt == 1:
-                            labeltext += "%-7s " % id.strip()
-                        elif cnt == 2:
-                            labeltext += "%-50s " % id.strip()
-                        elif cnt == 3:
-                            labeltext += "%-6s " % id.strip()
-                        elif cnt == 4:
-                            labeltext += "%-7s " % id.strip()
+                        if cnt < 5:
+                            tup += [id.strip()]
                         else:
+                            tup += [id.strip()]
                             cnt = 0
-                            labeltext += id.strip() + "\n"
-
-                problemlabel.config(text=labeltext)
+                            num += 1
+                            problemtree.insert(
+                                "", num - 1, text=str(num), values=tuple(tup)
+                            )
+                            tup = []
 
             except TimeoutError:
                 self.error("Timeout")
@@ -538,7 +546,13 @@ search   :
         )
 
         def __random():
-            problemlabel.config(text=str(random.randrange(1000, 6667)))
+            __clear()
+            problemtree.insert(
+                "",
+                0,
+                text="random",
+                values=(str(random.randrange(1000, 6667)), "", "", "", ""),
+            )
 
         tk.Button(__frame, text="random", width=10, command=__random).grid(
             row=1, column=0, padx=10, pady=5
@@ -570,7 +584,8 @@ search   :
         def __searchcode():
             labeltext = ""
 
-            for i in range(10):
+            codelabel.config(text="Please wait")
+            for i in range(1, 100):
                 try:
                     response = requests.post(
                         f"https://gmoj.net/senior/index.php/main/status/{i}?problems[]={problementry.get()}&status[]=0",
@@ -581,6 +596,9 @@ search   :
                     response.raise_for_status()
                     soup = bs4.BeautifulSoup(response.text, "html.parser")
 
+                    if len(soup.find_all("tr")) <= 2:
+                        break
+
                     for item in soup.find_all("tr"):
                         if str(item).find("icon-globe") != -1:
                             labeltext += (
@@ -588,10 +606,14 @@ search   :
                             )
                     codelabel.config(text=labeltext)
 
+                    time.sleep(0.5)
+
                 except TimeoutError:
                     self.error("Timeout")
                 except Exception as e:
                     self.error(e)
+            if not labeltext:
+                codelabel.config(text="No code")
 
         tk.Button(__frame, text="search", width=10, command=__searchcode).grid(
             row=0, column=0, padx=10, pady=5
