@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, ttk
+from httpx import delete
 import requests
 import json
 import bs4
@@ -581,13 +582,14 @@ search   :
         __frame = tk.Frame(self.rightframe)
         __frame.grid(row=1, column=0, padx=10, pady=5)
 
-        codelabel = tk.Label(self.rightframe, text="Please search", width=50, height=10)
+        codelabel = tk.Text(self.rightframe, width=50, height=10)
+        codelabel.insert("1.0", "Please search")
         codelabel.grid(row=1, column=1, padx=10, pady=5)
 
         def __searchcode():
             labeltext = ""
 
-            codelabel.config(text="Please wait")
+            codelabel.delete("1.0", "end")
             for i in range(1, 100):
                 try:
                     response = requests.post(
@@ -607,7 +609,7 @@ search   :
                             labeltext += (
                                 f"https://gmoj.net/senior/#main/code/{item.td.text}\n"
                             )
-                    codelabel.config(text=labeltext)
+                    codelabel.insert("1.0", labeltext)
 
                     time.sleep(0.5)
 
@@ -616,7 +618,7 @@ search   :
                 except Exception as e:
                     self.error(e)
             if not labeltext:
-                codelabel.config(text="No code")
+                codelabel.insert("1.0", "No codes")
 
         tk.Button(__frame, text="search", width=10, command=__searchcode).grid(
             row=0, column=0, padx=10, pady=5
