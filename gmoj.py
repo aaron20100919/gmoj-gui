@@ -58,7 +58,8 @@ class App(tk.Tk):
             "sec-fetch-dest": "empty",
             "sec-fetch-mode": "cors",
             "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
             "x-requested-with": "XMLHttpRequest",
         }
         self.cookies = {}
@@ -77,11 +78,12 @@ class App(tk.Tk):
 
         return __fun
 
-    def set(self, str="gmoj gui by Aaron"):
-        self.titlelabel.config(text=str)
+    def set(self, string="gmoj gui by Aaron"):
+        self.titlelabel.config(text=string)
         self.clear_right_frame()
 
-    def error(self, code):
+    @staticmethod
+    def error(code):
         __level = tk.Toplevel()
         __level.title("Error")
 
@@ -92,7 +94,8 @@ class App(tk.Tk):
             row=1, column=0, padx=10, pady=5
         )
 
-    def log(self, code):
+    @staticmethod
+    def log(code):
         __level = tk.Toplevel()
         __level.title("Log")
 
@@ -291,7 +294,6 @@ search   :
         tk.Label(self.rightframe, text="contest: ").grid(row=0, column=0, pady=5)
         contestentry = tk.Entry(self.rightframe, width=10)
         contestentry.grid(row=0, column=1, padx=10, pady=5)
-        contest = ""
 
         def __getcontest():
             contest = contestentry.get()
@@ -346,7 +348,6 @@ search   :
         tk.Label(self.rightframe, text="problem: ").grid(row=0, column=0, pady=5)
         problementry = tk.Entry(self.rightframe, width=10)
         problementry.grid(row=0, column=1, padx=10, pady=5)
-        problem = ""
 
         def __getproblem():
             problem = problementry.get()
@@ -398,7 +399,9 @@ search   :
         __frame = tk.Frame(self.rightframe)
         __frame.grid(row=1, column=0, padx=10, pady=5)
 
-        codelabel = tk.Label(self.rightframe, text="Please search", width=50, height=10)
+        codelabel = tk.Label(
+            self.rightframe, text="Please search", width=50, height=10, justify="left"
+        )
         codelabel.grid(row=1, column=1, padx=10, pady=5)
 
         def __searchuser():
@@ -442,9 +445,9 @@ search   :
                 item[k2] += " " + item[k2 + 1]
                 item.pop(k2)
 
-                labeltext = "%10s: %20s\n" % ("blog", blog)
+                labeltext = "%-10s: %-20s\n" % ("blog", blog)
                 for i in range(0, len(item), 2):
-                    labeltext += "%10s: %20s\n" % (item[i], item[i + 1])
+                    labeltext += "%-10s: %-20s\n" % (item[i], item[i + 1])
 
                 codelabel.config(text=labeltext)
 
@@ -523,12 +526,12 @@ search   :
 
                 for item in soup.find_all("a"):
                     if item.get("href"):
-                        id = str(item.text)
+                        it = str(item.text)
                         cnt += 1
                         if cnt < 5:
-                            tup += [id.strip()]
+                            tup += [it.strip()]
                         else:
-                            tup += [id.strip()]
+                            tup += [it.strip()]
                             cnt = 0
                             num += 1
                             problemtree.insert(
