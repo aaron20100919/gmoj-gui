@@ -320,7 +320,7 @@ search   :
                     )
                     response.raise_for_status()
 
-                    with open(file_path + f"/{i}.html", "wb") as f:
+                    with open(file_path + f"/{i+1}.html", "wb") as f:
                         f.write(response.content)
 
                 self.log("OK")
